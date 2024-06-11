@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -16,6 +17,29 @@ public class PlayerMovement : MonoBehaviour
         _rigidbody.inertiaTensorRotation = Quaternion.identity;
     }
 
+    private void OnEnable()
+    {
+        WinZone.OnPlayerArrived += DeactivateThis;
+        UIManager.OnGameStarted += ActivateThis;
+    }
+
+    private void OnDisable()
+    {
+        WinZone.OnPlayerArrived -= DeactivateThis;
+        UIManager.OnGameStarted -= ActivateThis;
+    }
+
+    private void DeactivateThis()
+    {
+        _rigidbody.velocity = Vector3.zero;
+        enabled = false;
+    }
+
+    private void ActivateThis()
+    {
+        enabled = true;
+    }
+    
     private void Update()
     {
         if (Input.touchCount <= 0)

@@ -4,13 +4,33 @@ public class PlayerRotator : MonoBehaviour
 {
     [SerializeField] private float _tresholdDistance = 300f;
     [SerializeField] private float _rotationSpeed = 5f;
-
-    private enum RotationState { North, East, South, West }
-    private RotationState _currentState = RotationState.North;
-
+    
+    private float _targetRotation;
     private float _startX;
     private bool _isDragging;
 
+    private void OnEnable()
+    {
+        WinZone.OnPlayerArrived += DeactivateThis;
+        UIManager.OnGameStarted += ActivateThis;
+    }
+
+    private void OnDisable()
+    {
+        WinZone.OnPlayerArrived -= DeactivateThis;
+        UIManager.OnGameStarted -= ActivateThis;
+    }
+
+    private void DeactivateThis()
+    {
+        enabled = false;
+    }
+    
+    private void ActivateThis()
+    {
+        enabled = true;
+    }
+    
     void Update()
     {
         if (Input.touchCount > 0)
@@ -38,6 +58,7 @@ public class PlayerRotator : MonoBehaviour
                     {
                         UpdateRotationState(deltaX);
                         _startX = touch.position.x;
+                        _isDragging = false;
                     }
                 }
                 break;
@@ -51,35 +72,17 @@ public class PlayerRotator : MonoBehaviour
     {
         if (deltaX > 0)
         {
-            _currentState = (RotationState)(((int)_currentState + 1) % 4);
+            _targetRotation += 90f;
         }
         else
         {
-            _currentState = (RotationState)(((int)_currentState - 1 + 4) % 4);
+            _targetRotation -= 90f;
         }
     }
 
     private void RotateFigure()
     {
-        float targetRotation = GetTargetRotation();
         float step = _rotationSpeed * Time.deltaTime;
-        transform.eulerAngles = new Vector3(0f, Mathf.LerpAngle(transform.eulerAngles.y, targetRotation, step), 180f);
-    }
-
-    private float GetTargetRotation()
-    {
-        switch (_currentState)
-        {
-            case RotationState.North:
-                return 0f;
-            case RotationState.East:
-                return 90f;
-            case RotationState.South:
-                return 180f;
-            case RotationState.West:
-                return 270f;
-            default:
-                return 0f;
-        }
+        transform.eulerAngles = new Vector3(0f, Mathf.LerpAngle(transform.eulerAngles.y, _targetRotation, step), 0);
     }
 }
